@@ -12,17 +12,18 @@ import {
 	MenuItem,
 } from "@mui/material";
 import { Menu as MenuIcon } from "@mui/icons-material";
+import { Link, useNavigate } from "react-router-dom";
 
 const pages = [
-	"Recipe",
-	"Inventory",
-	"Vendor",
-	"Purchase Ingredients",
-	"Reports",
-	"Banner Uploads",
+	{ name: "Recipe", link: "/recipe" },
+	{ name: "Inventory", link: "/inventory" },
+	{ name: "Vendor", link: "/vendor" },
+	{ name: "Purchase Ingredients", link: "/ingredient" },
+	{ name: "Reports", link: "/reports" },
+	{ name: "Banner Uploads", link: "/bannerupload" },
 ];
 
-export default function KeyAppBar() {
+export default function KeyAppBar(props) {
 	const [anchorElNav, setAnchorElNav] = useState(null);
 
 	const handleOpenNavMenu = (event) => {
@@ -42,7 +43,9 @@ export default function KeyAppBar() {
 						noWrap
 						component='div'
 						sx={{ mr: 2, display: { xs: "none", md: "flex" } }}>
-						Switch-On Coffee and Keto
+						Switch-On
+						<br />
+						Coffee and Keto
 					</Typography>
 
 					<Box
@@ -78,15 +81,19 @@ export default function KeyAppBar() {
 							}}>
 							{pages.map((page) => (
 								<MenuItem
-									key={page}
-									onClick={handleCloseNavMenu}>
+									key={page.name}
+									component={Link}
+									to={page.link}
+									onClick={handleCloseNavMenu}
+									onTouchStart={handleCloseNavMenu}>
 									<Typography textAlign='center'>
-										{page}
+										{page.name}
 									</Typography>
 								</MenuItem>
 							))}
 						</Menu>
 					</Box>
+
 					<Typography
 						variant='h6'
 						noWrap
@@ -104,14 +111,14 @@ export default function KeyAppBar() {
 						}}>
 						{pages.map((page) => (
 							<Button
-								key={page}
+								key={page.link}
 								onClick={handleCloseNavMenu}
 								sx={{
 									my: 2,
 									color: "white",
 									display: "block",
 								}}>
-								{page}
+								{page.name}
 							</Button>
 						))}
 					</Box>
