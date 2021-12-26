@@ -1,7 +1,7 @@
 {
-  "name": "node-app-st",
+  "name": "st-server",
   "version": "1.0.0",
-  "description": "all online service for ST Center",
+  "description": "all backend service for ST Center",
   "main": "cafe.js",
   "dependencies": {
     "axios": "^0.24.0",
