@@ -9,7 +9,7 @@ function App() {
 	const [user, setUser] = useState({});
 	return (
 		<div className='App'>
-			<BrowserRouter basename='/cafe'>
+			<BrowserRouter basename={process.env.REACT_APP_BASE_URL}>
 				<PersistentDrawerLeft />
 				<Routes>
 					<Route path='/inventory' element={<InventoryPage />} />
