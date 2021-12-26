@@ -1,16 +1,16 @@
 import "./App.css";
-import KeyAppBar from "./components/AppBar";
 import AuthCard from "./components/AuthCard";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from "react";
 import InventoryPage from "./routes/InventoryPage";
+import PersistentDrawerLeft from "./components/AppDrawer";
 
 function App() {
 	const [user, setUser] = useState({});
 	return (
 		<div className='App'>
 			<BrowserRouter basename='/cafe'>
-				<KeyAppBar user={user} />
+				<PersistentDrawerLeft />
 				<Routes>
 					<Route path='/inventory' element={<InventoryPage />} />
 					<Route
