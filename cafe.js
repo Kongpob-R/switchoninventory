@@ -36,6 +36,8 @@ httpServer.listen(PORT, () =>
 	console.log(`ðŸš Server running on port ${PORT}`)
 );
 
+// handling banner uploads
+
 const multer = require("multer");
 
 const handleError = (err, res) => {
@@ -104,12 +106,15 @@ app.post(
 	}
 );
 
+// handling kitchenscreen with flutter web
+
 app.use(
 	"/kitchenscreen",
 	express.static(path.join(__dirname, "../switchonkitchenscreen/"))
 );
 
 // Initialize Mongoose Object
+
 const mongoose = require("mongoose");
 const dbUrl = process.env.DB_URL;
 mongoose.connect(
@@ -126,6 +131,7 @@ mongoose.connect(
 const Order = require("./models/Order");
 
 // Initialize MQTT
+
 const mqtt = require("mqtt");
 
 const host = process.env.HOST;
@@ -158,6 +164,8 @@ client.on("message", (topic, payload) => {
 	console.log("Received Message:", topic, payload.toString());
 });
 
+// handle Socket.io connection
+
 const stateCycle = (categories, state) => {
 	if (categories == "drinks") {
 		if (state == "wait") return "process";
@@ -173,7 +181,6 @@ const stateCycle = (categories, state) => {
 	}
 };
 
-// handle Socket.io connection
 io.on("connection", (socket) => {
 	socket.on("orders", async () => {
 		const orders = await Order.find().limit(12);
@@ -244,7 +251,8 @@ const emitUpdatedQueueBanner = async () => {
 	console.log("emited Updated Queue Banner");
 };
 
-// handling OauthToken
+// handling OauthToken SCB
+
 var tokenExpiresAt = 0;
 var refreshExpiresAt = 0;
 var refreshToken;
@@ -298,7 +306,8 @@ const catalog = {
 	"6SMXXP7WXY2IOGV3R3DWA7XY": "desserts",
 };
 
-// Start express on the defined port
+// handling hooks
+
 app.post("/hook/payment-created", (req, res) => {
 	// console.log(req.body) // Call your action on the request here
 	res.status(200).end(); // Responding is important
@@ -406,3 +415,5 @@ app.post("/hook/scb", (req, res) => {
 	console.log(req.body); // Call your action on the request here
 	res.status(200).end(); // Responding is important
 });
+
+// handling API
