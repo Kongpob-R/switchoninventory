@@ -129,6 +129,7 @@ mongoose.connect(
 	}
 );
 const Order = require("./models/Order");
+const User = require("./models/User");
 
 // Initialize MQTT
 
@@ -417,3 +418,29 @@ app.post("/hook/scb", (req, res) => {
 });
 
 // handling API
+
+const jwt = require("jsonwebtoken");
+
+const maxAge = 3 * 24 * 60 * 60;
+
+const createToken = (id) => {
+	return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: maxAge });
+};
+
+app.post("/api/register", async (req, res) => {
+	const { email, password } = req.body;
+
+	try {
+		const user = await User.create({ email, password });
+		const token = createToken(user._id);
+		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
+		res.status(201).json({ user: user._id, jwt: token });
+	} catch (err) {
+		const errors = err;
+		res.status(400).json({ errors: errors });
+	}
+});
+
+app.post("/api/login", async (req, res) => {
+	const { email, password } = req.body;
+});
