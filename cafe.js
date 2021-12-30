@@ -432,9 +432,10 @@ app.post("/api/register", async (req, res) => {
 
 	try {
 		const user = await User.create({ email, password });
-		const token = createToken(user._id);
-		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
-		res.status(201).json({ user: user._id, jwt: token });
+		res.status(201).json({
+			message:
+				"Success! Please wait for your role to be assigned before login",
+		});
 	} catch (err) {
 		const errors = err;
 		res.status(400).json({ errors: errors });
@@ -443,4 +444,12 @@ app.post("/api/register", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
 	const { email, password } = req.body;
+	try {
+		const user = await User.login(email, password);
+		const token = createToken(user._id);
+		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
+		res.status(200).json({ user: user._id, jwt: token });
+	} catch (err) {
+		res.status(400).json({ errors: err.toString() });
+	}
 });

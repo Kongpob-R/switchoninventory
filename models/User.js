@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema({
 		required: [true, "Please enter a password"],
 		minlength: [8, "Minimum password length is 8 characters"],
 	},
+	role: {
+		type: String,
+	},
 });
 
 userSchema.pre("save", function (next) {
@@ -31,6 +34,22 @@ userSchema.pre("save", function (next) {
 		});
 	});
 });
+
+userSchema.statics.login = async function (email, password) {
+	const user = await this.findOne({ email });
+	if (user) {
+		const isAdmit = user.role === "admin" ? true : false;
+		const auth = await bcrypt.compare(password, user.password);
+		if (auth) {
+			if (isAdmit) {
+				return user;
+			}
+			throw Error("your role is not admin");
+		}
+		throw Error("incorrect password");
+	}
+	throw Error("incorrect email");
+};
 
 var User = mongoose.model("User", userSchema);
 
