@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import {
 	Grid,
@@ -24,7 +24,9 @@ const validationSchema = yup.object({
 		.required("Password is required"),
 });
 
-export default function AuthCard() {
+export default function AuthCard(props) {
+	const [resMessage, setResMessage] = useState({});
+
 	const formik = useFormik({
 		initialValues: {
 			email: "",
@@ -32,10 +34,34 @@ export default function AuthCard() {
 			action: "login",
 		},
 		validationSchema: validationSchema,
+		handleChange: () => {
+			setResMessage({});
+		},
 		onSubmit: (values) => {
 			if (values.action === "register")
-				axios.post(process.env.REACT_APP_API_REGISTER, values);
-			else axios.post(process.env.REACT_APP_API_LOGIN, values);
+				axios
+					.post(process.env.REACT_APP_API_REGISTER, values)
+					.then((res) => {
+						setResMessage({
+							color: "green",
+							text: res.data.message,
+						});
+					});
+			else
+				axios
+					.post(process.env.REACT_APP_API_LOGIN, values)
+					.then((res) => {
+						if (res.data.user) {
+							props.setUser(res.data.user);
+							setResMessage({ color: "green", text: "Success" });
+						}
+					})
+					.catch((err) => {
+						setResMessage({
+							color: "red",
+							text: err.response.data.errors,
+						});
+					});
 			// alert(JSON.stringify(values));
 		},
 	});
@@ -97,6 +123,12 @@ export default function AuthCard() {
 									formik.errors.password
 								}
 							/>
+							<Typography
+								sx={{ fontSize: 14 }}
+								color={resMessage.color || "text.secondary"}
+								gutterBottom>
+								{resMessage.text}
+							</Typography>
 						</CardContent>
 
 						<CardActions>
