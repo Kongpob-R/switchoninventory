@@ -11,7 +11,8 @@ import {
 	Button,
 } from "@mui/material";
 import * as yup from "yup";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import AuthService from "../services/auth.service";
 
 const validationSchema = yup.object({
 	email: yup
@@ -24,7 +25,8 @@ const validationSchema = yup.object({
 		.required("Password is required"),
 });
 
-export default function AuthCard(props) {
+export default function AuthCard() {
+	let navigate = useNavigate();
 	const [resMessage, setResMessage] = useState({});
 
 	const formik = useFormik({
@@ -39,28 +41,34 @@ export default function AuthCard(props) {
 		},
 		onSubmit: (values) => {
 			if (values.action === "register")
-				axios
-					.post(process.env.REACT_APP_API_REGISTER, values)
+				AuthService.register(values)
 					.then((res) => {
 						setResMessage({
 							color: "green",
 							text: res.data.message,
 						});
+					})
+					.catch(() => {
+						setResMessage({
+							color: "red",
+							text: "email already exists or some field are missing",
+						});
 					});
 			else
-				axios
-					.post(process.env.REACT_APP_API_LOGIN, values)
+				AuthService.login(values)
 					.then((res) => {
-						if (res.data.user) {
-							props.setUser(res.data.user);
+						if (res.data) {
 							setResMessage({ color: "green", text: "Success" });
+							navigate("/inventory");
 						}
 					})
 					.catch((err) => {
-						setResMessage({
-							color: "red",
-							text: err.response.data.errors,
-						});
+						if (err.response) {
+							setResMessage({
+								color: "red",
+								text: err.response.data.errors,
+							});
+						}
 					});
 			// alert(JSON.stringify(values));
 		},

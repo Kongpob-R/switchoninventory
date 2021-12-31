@@ -1,6 +1,6 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { styled, useTheme } from "@mui/material/styles";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -18,8 +18,12 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 
-const drawerWidth = 240;
+import AuthService from "../services/auth.service";
+
+const drawerWidth = 280;
 const pages = [
 	{ name: "Recipe", link: "/recipe" },
 	{ name: "Inventory", link: "/inventory" },
@@ -74,11 +78,22 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 export default function PersistentDrawerLeft() {
+	let navigate = useNavigate();
+	const [user, setUser] = useState({});
+
+	const handleLogout = () => {
+		AuthService.logout();
+		setUser({});
+		setOpen(false);
+		navigate("/auth");
+	};
+
 	const theme = useTheme();
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = useState(false);
 
 	const handleDrawerOpen = () => {
 		setOpen(true);
+		setUser(AuthService.getCurrentUser() || {});
 	};
 
 	const handleDrawerClose = () => {
@@ -98,9 +113,14 @@ export default function PersistentDrawerLeft() {
 						sx={{ mr: 2, ...(open && { display: "none" }) }}>
 						<MenuIcon />
 					</IconButton>
-					<Typography variant='h6' noWrap component='div'>
+					<Typography
+						variant='h6'
+						noWrap
+						component='div'
+						sx={{ mr: 2 }}>
 						Switch-On Coffee and Keto
 					</Typography>
+					<Typography noWrap component='div'></Typography>
 				</Toolbar>
 			</AppBar>
 			<Drawer
@@ -114,6 +134,7 @@ export default function PersistentDrawerLeft() {
 				}}
 				variant='persistent'
 				anchor='left'
+				onClick={handleDrawerClose}
 				open={open}>
 				<DrawerHeader>
 					<IconButton onClick={handleDrawerClose}>
@@ -148,10 +169,18 @@ export default function PersistentDrawerLeft() {
 						component={Link}
 						to={"/auth"}>
 						<ListItemIcon>
-							<MailIcon />
+							<LoginIcon />
 						</ListItemIcon>
 						<ListItemText primary={"Authenication"} />
 					</ListItem>
+					{user ? (
+						<ListItem button onClick={handleLogout}>
+							<ListItemIcon>
+								<LogoutIcon />
+							</ListItemIcon>
+							<ListItemText primary={user ? user.email : ""} />
+						</ListItem>
+					) : null}
 				</List>
 			</Drawer>
 			<Main open={open}>
