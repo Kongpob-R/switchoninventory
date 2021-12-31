@@ -44,11 +44,11 @@ userSchema.statics.login = async function (email, password) {
 			if (isAdmit) {
 				return user;
 			}
-			throw Error("your role is not admin");
+			throw { status: 403, text: "your role is not admin" };
 		}
-		throw Error("incorrect password");
+		throw { status: 401, text: "incorrect password" };
 	}
-	throw Error("incorrect email");
+	throw { status: 401, text: "incorrect email" };
 };
 
 var User = mongoose.model("User", userSchema);

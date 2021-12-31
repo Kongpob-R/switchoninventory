@@ -16,10 +16,26 @@ const axios = require("axios");
 
 //Initialize express and define a port
 var app = express();
+var cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const PORT = 4001;
 app.use(bodyParser.json());
+const domainsFromEnv = process.env.CORS_DOMAINS || "";
+
+const whitelist = domainsFromEnv.split(",").map((item) => item.trim());
+
+const corsOptions = {
+	origin: function (origin, callback) {
+		if (!origin || whitelist.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			callback(new Error("Not allowed by CORS"));
+		}
+	},
+	credentials: true,
+};
+app.use(cors(corsOptions));
 
 const options = {
 	cors: {
@@ -450,6 +466,6 @@ app.post("/api/login", async (req, res) => {
 		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
 		res.status(200).json({ user: user._id, jwt: token });
 	} catch (err) {
-		res.status(400).json({ errors: err.toString() });
+		res.status(err.status).json({ errors: err.text });
 	}
 });
