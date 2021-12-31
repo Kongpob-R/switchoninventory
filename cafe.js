@@ -443,7 +443,7 @@ const createToken = (id) => {
 	return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: maxAge });
 };
 
-app.post("/api/register", async (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
 	const { email, password } = req.body;
 
 	try {
@@ -458,13 +458,13 @@ app.post("/api/register", async (req, res) => {
 	}
 });
 
-app.post("/api/login", async (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
 	const { email, password } = req.body;
 	try {
 		const user = await User.login(email, password);
 		const token = createToken(user._id);
 		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
-		res.status(200).json({ user: user._id, jwt: token });
+		res.status(200).json({ email: user.email, accessToken: token });
 	} catch (err) {
 		res.status(err.status).json({ errors: err.text });
 	}
