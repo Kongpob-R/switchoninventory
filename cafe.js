@@ -436,11 +436,26 @@ app.post("/hook/scb", (req, res) => {
 // handling API
 
 const jwt = require("jsonwebtoken");
-
 const maxAge = 3 * 24 * 60 * 60;
 
 const createToken = (id) => {
 	return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: maxAge });
+};
+
+const verifyToken = (req, res, next) => {
+	let token = req.headers["x-access-token"];
+
+	if (!token) {
+		return res.status(403).send({ message: "No token provided!" });
+	}
+
+	jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+		if (err) {
+			return res.status(401).send({ message: "Unauthorized!" });
+		}
+		req.userId = decoded.id;
+		next();
+	});
 };
 
 app.post("/api/auth/register", async (req, res) => {
@@ -464,8 +479,16 @@ app.post("/api/auth/login", async (req, res) => {
 		const user = await User.login(email, password);
 		const token = createToken(user._id);
 		res.cookie("jwt", token, { maxAge: maxAge * 1000 });
-		res.status(200).json({ email: user.email, accessToken: token });
+		res.status(200).json({
+			email: user.email,
+			userId: user._id,
+			accessToken: token,
+		});
 	} catch (err) {
 		res.status(err.status).json({ errors: err.text });
 	}
+});
+
+app.get("/api/cafe/inventory", verifyToken, (req, res) => {
+	res.status(200).json({ message: "here inventory info" });
 });

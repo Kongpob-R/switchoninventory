@@ -44,7 +44,7 @@ userSchema.statics.login = async function (email, password) {
 			if (isAdmit) {
 				return user;
 			}
-			throw { status: 403, text: "your role is not admin" };
+			throw { status: 401, text: "your role is not admin" };
 		}
 		throw { status: 401, text: "incorrect password" };
 	}
