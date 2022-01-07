@@ -513,3 +513,47 @@ app.post("/api/cafe/ingredient", verifyToken, async (req, res) => {
 		value: value,
 	});
 });
+
+app.get("/api/cafe/recipe", verifyToken, async (req, res) => {
+	let recipes = await Recipe.find();
+	let ingredients = await Ingredient.find();
+	res.status(200).json({ ingredients: ingredients, recipes: recipes });
+});
+
+app.post("/api/cafe/recipe", verifyToken, async (req, res) => {
+	const { action, filter, value } = req.body;
+	if (action == "create") {
+		await new Recipe(value).save();
+	} else if (action == "update") {
+		await Recipe.findOneAndUpdate(filter, value);
+	} else if (action == "delete") {
+		await Recipe.findOneAndDelete(filter);
+	}
+	res.status(200).json({
+		message: action + " success",
+		filter: filter,
+		value: value,
+	});
+});
+
+app.get("/api/cafe/vendor", verifyToken, async (req, res) => {
+	let vendors = await Vendor.find();
+	let ingredients = await Ingredient.find();
+	res.status(200).json({ ingredients: ingredients, vendors: vendors });
+});
+
+app.post("/api/cafe/vendor", verifyToken, async (req, res) => {
+	const { action, filter, value } = req.body;
+	if (action == "create") {
+		await new Vendor(value).save();
+	} else if (action == "update") {
+		await Vendor.findOneAndUpdate(filter, value);
+	} else if (action == "delete") {
+		await Vendor.findOneAndDelete(filter);
+	}
+	res.status(200).json({
+		message: action + " success",
+		filter: filter,
+		value: value,
+	});
+});
