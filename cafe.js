@@ -146,6 +146,10 @@ mongoose.connect(
 );
 const Order = require("./models/Order");
 const User = require("./models/User");
+const Ingredient = require("./models/Ingredient");
+const Item = require("./models/Item");
+const Recipe = require("./models/Recipe");
+const Vendor = require("./models/Vendor");
 
 // Initialize MQTT
 
@@ -489,6 +493,23 @@ app.post("/api/auth/login", async (req, res) => {
 	}
 });
 
-app.get("/api/cafe/inventory", verifyToken, (req, res) => {
-	res.status(200).json({ message: "here inventory info" });
+app.get("/api/cafe/ingredient", verifyToken, async (req, res) => {
+	let ingredients = await Ingredient.find();
+	res.status(200).json({ ingredients: ingredients });
+});
+
+app.post("/api/cafe/ingredient", verifyToken, async (req, res) => {
+	const { action, filter, value } = req.body;
+	if (action == "create") {
+		await new Ingredient(value).save();
+	} else if (action == "update") {
+		await Ingredient.findOneAndUpdate(filter, value);
+	} else if (action == "delete") {
+		await Ingredient.findOneAndDelete(filter);
+	}
+	res.status(200).json({
+		message: action + " success",
+		filter: filter,
+		value: value,
+	});
 });
