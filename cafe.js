@@ -516,8 +516,7 @@ app.post("/api/cafe/ingredient", verifyToken, async (req, res) => {
 
 app.get("/api/cafe/recipe", verifyToken, async (req, res) => {
 	let recipes = await Recipe.find();
-	let ingredients = await Ingredient.find();
-	res.status(200).json({ ingredients: ingredients, recipes: recipes });
+	res.status(200).json({ recipes: recipes });
 });
 
 app.post("/api/cafe/recipe", verifyToken, async (req, res) => {
@@ -538,8 +537,7 @@ app.post("/api/cafe/recipe", verifyToken, async (req, res) => {
 
 app.get("/api/cafe/vendor", verifyToken, async (req, res) => {
 	let vendors = await Vendor.find();
-	let ingredients = await Ingredient.find();
-	res.status(200).json({ ingredients: ingredients, vendors: vendors });
+	res.status(200).json({ vendors: vendors });
 });
 
 app.post("/api/cafe/vendor", verifyToken, async (req, res) => {
