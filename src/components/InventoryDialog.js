@@ -19,6 +19,7 @@ const catagoryList = [
 
 export default function InventoryDialog(props) {
 	const [vendors, setVendors] = useState([]);
+	const [action, setAction] = useState("create");
 
 	const fetchVendors = async () => {
 		const vendors = await cafeService.getVendor();
@@ -43,14 +44,22 @@ export default function InventoryDialog(props) {
 			  },
 		enableReinitialize: true,
 		onSubmit: (values) => {
-			if (props.values) {
+			if (action === "update") {
 				cafeService.postIngredient(
 					"update",
 					{ _id: props.values._id },
 					values
 				);
-			} else {
-				cafeService.postIngredient("create", {}, values);
+			} else if (action === "create") {
+				cafeService.postIngredient("create", {}, values).then(() => {
+					formik.resetForm();
+				});
+			} else if (action === "delete") {
+				cafeService.postIngredient(
+					"delete",
+					{ _id: props.values._id },
+					{}
+				);
 			}
 		},
 	});
@@ -167,9 +176,24 @@ export default function InventoryDialog(props) {
 				</DialogContent>
 
 				<DialogActions>
+					<Button
+						variant='outlined'
+						color='error'
+						onClick={() => {
+							setAction("delete");
+							formik.handleSubmit();
+							props.handleClose();
+						}}>
+						Delete
+					</Button>
 					<Button onClick={props.handleClose}>Cancel</Button>
 					<Button
+						variant='outlined'
+						color='success'
 						onClick={() => {
+							props.values
+								? setAction("update")
+								: setAction("create");
 							formik.handleSubmit();
 							props.handleClose();
 						}}>

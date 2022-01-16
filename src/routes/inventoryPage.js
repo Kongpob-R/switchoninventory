@@ -27,7 +27,9 @@ export default function InventoryPage() {
 				qtyPerUnit:
 					ingredient.qtyPerUnit.toString() + " " + ingredient.qtyName,
 				qty: ingredient.qty.toString() + " " + ingredient.qtyName,
-				numberOfUnit: ingredient.qty / ingredient.qtyPerUnit,
+				numberOfUnit: (
+					ingredient.qty / ingredient.qtyPerUnit
+				).toString(),
 			};
 		});
 		setIngredients({ rows: rows, data: data });
@@ -45,7 +47,7 @@ export default function InventoryPage() {
 				open={dialog.state}
 				values={dialog.content}
 				handleClose={() => {
-					setDialog({ state: false, content: null });
+					setDialog({ ...dialog, state: false });
 				}}
 			/>
 			<TableContainer component={Paper}>
@@ -62,7 +64,7 @@ export default function InventoryPage() {
 					<TableBody>
 						{ingredients.rows.map((row) => (
 							<TableRow
-								key={row.name}
+								key={"tableRow" + row.index}
 								hover={true}
 								sx={{
 									"&:last-child td, &:last-child th": {
