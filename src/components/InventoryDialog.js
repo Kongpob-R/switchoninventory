@@ -41,6 +41,7 @@ export default function InventoryDialog(props) {
 					cost: 0,
 					vendor_id: "",
 			  },
+		enableReinitialize: true,
 		onSubmit: (values) => {
 			if (props.values) {
 				cafeService.postIngredient(

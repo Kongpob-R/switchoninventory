@@ -16,11 +16,13 @@ import cafeService from "../services/cafe.service";
 import InventoryDialog from "../components/InventoryDialog";
 
 export default function InventoryPage() {
-	const [ingredients, setIngredients] = useState([]);
+	const [ingredients, setIngredients] = useState({ rows: [], data: [] });
 
 	const fetchIngredients = async () => {
-		const rows = (await cafeService.getIngredient()).map((ingredient) => {
+		const data = await cafeService.getIngredient();
+		const rows = data.map((ingredient, index) => {
 			return {
+				index: index,
 				name: ingredient.name,
 				qtyPerUnit:
 					ingredient.qtyPerUnit.toString() + " " + ingredient.qtyName,
@@ -28,21 +30,22 @@ export default function InventoryPage() {
 				numberOfUnit: ingredient.qty / ingredient.qtyPerUnit,
 			};
 		});
-		setIngredients(rows);
+		setIngredients({ rows: rows, data: data });
 	};
 
 	useEffect(() => {
 		fetchIngredients();
 	}, [ingredients]);
 
-	const [dialog, setDialog] = useState(false);
+	const [dialog, setDialog] = useState({ state: false, content: null });
 
 	return (
 		<Box mx={2}>
 			<InventoryDialog
-				open={dialog}
+				open={dialog.state}
+				values={dialog.content}
 				handleClose={() => {
-					setDialog(false);
+					setDialog({ state: false, content: null });
 				}}
 			/>
 			<TableContainer component={Paper}>
@@ -55,8 +58,9 @@ export default function InventoryPage() {
 							<TableCell align='right'>Number of Unit</TableCell>
 						</TableRow>
 					</TableHead>
+
 					<TableBody>
-						{ingredients.map((row) => (
+						{ingredients.rows.map((row) => (
 							<TableRow
 								key={row.name}
 								hover={true}
@@ -64,6 +68,12 @@ export default function InventoryPage() {
 									"&:last-child td, &:last-child th": {
 										border: 0,
 									},
+								}}
+								onClick={() => {
+									setDialog({
+										state: true,
+										content: ingredients.data[row.index],
+									});
 								}}>
 								<TableCell component='th' scope='row'>
 									{row.name}
@@ -89,7 +99,7 @@ export default function InventoryPage() {
 					color='primary'
 					aria-label='add'
 					onClick={() => {
-						setDialog(true);
+						setDialog({ state: true, content: null });
 					}}>
 					<AddIcon />
 				</Fab>
