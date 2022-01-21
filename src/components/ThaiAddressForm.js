@@ -40,7 +40,7 @@ export default function ThaiAddressForm(props) {
 				break;
 			case "zipcode":
 				setAddresses(
-					searchAddressByAmphoe(props.formik.values.zipcode)
+					searchAddressByZipcode(props.formik.values.zipcode)
 				);
 				break;
 			default:
