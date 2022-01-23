@@ -206,10 +206,11 @@ io.on("connection", (socket) => {
 			})
 		) {
 			await Order.deleteOne({ _id: target.orderID });
+			emitOrders();
 		} else {
 			await order.save();
+			emitOrders();
 		}
-		emitOrders();
 	});
 	socket.on("message", (message) => {
 		console.log(message);
@@ -366,7 +367,7 @@ app.post("/hook/payment-created", (req, res) => {
 
 			// if pay by others generate QR code payment
 			// await getAuthToken(newOrder['_id'] + '')
-			await getQrcode(newOrder["_id"] + "", amount);
+			// await getQrcode(newOrder["_id"] + "", amount);
 		} catch (error) {
 			console.log(error);
 		}
