@@ -12,7 +12,6 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.11",
-    "mqtt": "^4.2.8",
     "multer": "^1.4.3",
     "request": "^2.88.2",
     "socket.io": "^2.3.0",
