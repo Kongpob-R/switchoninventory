@@ -141,7 +141,7 @@ mongoose.connect(
 		useFindAndModify: false,
 	},
 	(err) => {
-		console.log("mongodb connected", err);
+		console.log("mongodb connected", err ? err : "No Errors");
 	}
 );
 const Order = require("./models/Order");
@@ -352,6 +352,7 @@ app.post("/hook/payment-created", (req, res) => {
 					state: "wait",
 				};
 			});
+			Item.create(lineItems);
 			const newOrder = Order(
 				{
 					is_paid: paymentMethod === "CASH" ? true : false,
