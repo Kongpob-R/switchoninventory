@@ -205,12 +205,11 @@ io.on("connection", (socket) => {
 				return item.state == "served";
 			})
 		) {
-			await Order.deleteOne({ _id: target.orderID });
-			emitOrders();
+			await Order.deleteOne({ _id: target.orderID }).exec();
 		} else {
 			await order.save();
-			emitOrders();
 		}
+		emitOrders();
 	});
 	socket.on("message", (message) => {
 		console.log(message);
