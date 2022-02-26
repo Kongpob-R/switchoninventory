@@ -79,7 +79,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 export default function PersistentDrawerLeft() {
 	let navigate = useNavigate();
-	const [user, setUser] = useState({});
+	const [user, setUser] = useState();
 
 	const handleLogout = () => {
 		AuthService.logout();
@@ -91,9 +91,12 @@ export default function PersistentDrawerLeft() {
 	const theme = useTheme();
 	const [open, setOpen] = useState(false);
 
+	useEffect(() => {
+		setUser(AuthService.getCurrentUser() || null);
+	}, [open]);
+
 	const handleDrawerOpen = () => {
 		setOpen(true);
-		setUser(AuthService.getCurrentUser() || {});
 	};
 
 	const handleDrawerClose = () => {
