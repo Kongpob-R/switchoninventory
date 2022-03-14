@@ -7,7 +7,11 @@ const cors = require("cors");
 admin.initializeApp();
 const db = admin.database();
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+  verify: function(req, res, buf, encoding) {
+    req.rawBody = buf.toString(encoding || "utf-8");
+  },
+}));
 app.use(cors({origin: true}));
 
 // handle upload image
@@ -33,6 +37,20 @@ exports.bannerUploadHandler = functions
       }
     });
 
+// Validation of Square webhook
+const crypto = require("crypto");
+const NOTIFICATION_URL = process.env.SQUARE_NOTIFICATION_URL;
+const SIG_KEY = process.env.SQUARE_SIG_KEY;
+const isFromSquare = (sigKey, notificationUrl, squareSignature, rawBody) => {
+  // create hmac signature
+  const hmac = crypto.createHmac("sha1", sigKey);
+  hmac.update(notificationUrl + rawBody);
+  const hash = hmac.digest("base64");
+
+  // compare to square signature
+  return hash === squareSignature;
+};
+
 // handle SquareAPI
 const {Client, Environment} = require("square");
 const clientSquare = new Client({
@@ -45,59 +63,70 @@ const catalog = {
 
 app.post("/hook/payment-created", async (req, res) => {
   // console.log(req.body) // Call your action on the request here
-  res.status(200).end(); // Responding is important
-  // eject drawer if pay by cash
-  const paymentMethod = req.body.data.object.payment.source_type;
-  // const amount =
-  // "" + req.body.data.object.payment.amount_money.amount / 100;
-  console.log("payment method: ", paymentMethod);
-  if (paymentMethod === "CASH") {
-    db.ref("alert/").set({"drawer": "active"});
-  }
-
-  // fetch orders details with payment
-  const response = await clientSquare.ordersApi.retrieveOrder(
-      req.body.data.object.payment.order_id,
+  const squareSignature = req.headers["x-square-signature"];
+  const eventIsFromSquare = isFromSquare(
+      SIG_KEY,
+      NOTIFICATION_URL,
+      squareSignature,
+      req.rawBody,
   );
-  console.log("response: ", response.body);
-  console.log("retriving orderID: ", req.body.data.object.payment.order_id);
-  console.log(
-      "catalogObjectId of first item: ",
-      response.result.order.lineItems[0].catalogObjectId,
-  );
-  console.log(
-      "variation of first item: ",
-      response.result.order.lineItems[0].variationName,
-  );
-
-  // create orders object
-  let previousCatalog = "drinks";
-  const lineItems = response.result.order.lineItems.map((item, index) => {
-    let modifiers = "";
-    previousCatalog = catalog[item.catalogObjectId] ?
-      catalog[item.catalogObjectId] :
-      previousCatalog;
-    if (item.modifiers) {
-      item.modifiers.map((modifier) => {
-        modifiers += modifiers === "" ? modifier.name : ", " + modifier.name;
-      });
+  if (eventIsFromSquare) {
+    res.status(200).end(); // Responding is important
+    // eject drawer if pay by cash
+    const paymentMethod = req.body.data.object.payment.source_type;
+    // const amount =
+    // "" + req.body.data.object.payment.amount_money.amount / 100;
+    console.log("payment method: ", paymentMethod);
+    if (paymentMethod === "CASH") {
+      db.ref("alert/").set({"drawer": "active"});
     }
-    return {
-      id: index,
-      name: item.name,
-      categories: previousCatalog,
-      variation: item.variationName,
-      modifier: modifiers,
-      quantity: item.quantity,
-      state: "wait",
+
+    // fetch orders details with payment
+    const response = await clientSquare.ordersApi.retrieveOrder(
+        req.body.data.object.payment.order_id,
+    );
+    console.log("response: ", response.body);
+    console.log("retriving orderID: ", req.body.data.object.payment.order_id);
+    console.log(
+        "catalogObjectId of first item: ",
+        response.result.order.lineItems[0].catalogObjectId,
+    );
+    console.log(
+        "variation of first item: ",
+        response.result.order.lineItems[0].variationName,
+    );
+
+    // create orders object
+    let previousCatalog = "drinks";
+    const lineItems = response.result.order.lineItems.map((item, index) => {
+      let modifiers = "";
+      previousCatalog = catalog[item.catalogObjectId] ?
+        catalog[item.catalogObjectId] :
+        previousCatalog;
+      if (item.modifiers) {
+        item.modifiers.map((modifier) => {
+          modifiers += modifiers === "" ? modifier.name : ", " + modifier.name;
+        });
+      }
+      return {
+        id: index,
+        name: item.name,
+        categories: previousCatalog,
+        variation: item.variationName,
+        modifier: modifiers,
+        quantity: item.quantity,
+        state: "wait",
+      };
+    });
+    const newOrder = {
+      is_paid: paymentMethod === "CASH" ? true : false,
+      items: lineItems,
     };
-  });
-  const newOrder = {
-    is_paid: paymentMethod === "CASH" ? true : false,
-    items: lineItems,
-  };
-  console.log("newOrder", JSON.stringify(newOrder));
-  db.ref("orders/").push(newOrder);
+    console.log("newOrder", JSON.stringify(newOrder));
+    db.ref("orders/").push(newOrder);
+  } else {
+    res.status(403).end(); // Responding is important
+  }
 });
 
 exports.app = functions
