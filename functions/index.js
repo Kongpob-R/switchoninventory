@@ -98,10 +98,12 @@ app.post("/hook/payment-created", async (req, res) => {
 
     // create orders object
     let previousCatalog = "drinks";
-    const lineItems = response.result.order.lineItems.map((item, index) => {
+    const lineItems = response.result.order.lineItems.filter((item) => {
       if (item.name == "Delivery Partner") {
         return false;
       }
+      return true;
+    }).map((item, index) => {
       let modifiers = "";
       previousCatalog = catalog[item.catalogObjectId] ?
         catalog[item.catalogObjectId] :
