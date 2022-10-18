@@ -3,9 +3,11 @@ const admin = require("firebase-admin");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const axios = require("axios");
 
 admin.initializeApp();
 const db = admin.database();
+// const orderCollection = admin.firestore().collection('order').
 const app = express();
 app.use(bodyParser.json({
   verify: function(req, res, buf, encoding) {
@@ -61,6 +63,7 @@ const catalog = {
   "6SMXXP7WXY2IOGV3R3DWA7XY": "desserts",
 };
 
+// handle Orders
 app.post("/hook/payment-created", async (req, res) => {
   // console.log(req.body) // Call your action on the request here
   const squareSignature = req.headers["x-square-signature"];
@@ -85,6 +88,8 @@ app.post("/hook/payment-created", async (req, res) => {
     const response = await clientSquare.ordersApi.retrieveOrder(
         req.body.data.object.payment.order_id,
     );
+    // send orders details to GAS
+    postOrderDetail(response.body);
     console.log("response: ", response.body);
     console.log("retriving orderID: ", req.body.data.object.payment.order_id);
     console.log(
@@ -133,6 +138,23 @@ app.post("/hook/payment-created", async (req, res) => {
     res.status(403).end(); // Responding is important
   }
 });
+
+// send orders details to GAS
+const postOrderDetail = (data) => {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  console.log("Posting Data to GAS");
+  axios.post("https://script.google.com/macros/s/AKfycbxpYmQVZflPrIDHR_tVwYGTtsQt3mQrOXbBBu0QWc8g-JvKSa04wrgUDPrVxVtGTcb0OA/exec",
+      data,
+      {
+        headers: headers,
+      },
+  ).then((response) => {
+  }).catch((error) => {
+    console.log(error);
+  });
+};
 
 exports.app = functions
     .region("asia-southeast1")
