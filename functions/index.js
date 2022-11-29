@@ -9,33 +9,36 @@ admin.initializeApp();
 const db = admin.database();
 // const orderCollection = admin.firestore().collection('order').
 const app = express();
-app.use(bodyParser.json({
-  verify: function(req, res, buf, encoding) {
-    req.rawBody = buf.toString(encoding || "utf-8");
-  },
-}));
+app.use(
+    bodyParser.json({
+      verify: function(req, res, buf, encoding) {
+        req.rawBody = buf.toString(encoding || "utf-8");
+      },
+    }),
+);
 app.use(cors({origin: true}));
 
 // handle upload image
 exports.bannerUploadHandler = functions
     .region("asia-southeast1")
-    .storage.object().onFinalize(async (object) => {
+    .storage.object()
+    .onFinalize(async (object) => {
       let imageUrl = "https://firebasestorage.googleapis.com/v0/b/";
       const dirName = object.name.substring(0, object.name.indexOf("/"));
       imageUrl = object.selfLink.replace(
           "https://www.googleapis.com/storage/v1/b/",
           imageUrl,
       );
-      imageUrl += "?alt=media&token=" +
-      object.metadata.firebaseStorageDownloadTokens;
+      imageUrl +=
+      "?alt=media&token=" + object.metadata.firebaseStorageDownloadTokens;
       // https://firebasestorage.googleapis.com/v0/b/switch-on-coffee-and-keto.appspot.com/o/fullscreen%2FScreen%20Shot%202565-01-30%20at%2018.28.29.png?alt=media&token=8568c879-be28-4856-95e4-bd74a1cbf28c
       //
       if (dirName == "fullscreen") {
         console.log("update imageUrl for fullscreen");
-        await db.ref("banner/fullscreen").set({"a0": imageUrl});
+        await db.ref("banner/fullscreen").set({a0: imageUrl});
       } else if (dirName == "halfscreen") {
         console.log("update imageUrl for halfscreen");
-        await db.ref("banner/halfscreen").set({"a0": imageUrl});
+        await db.ref("banner/halfscreen").set({a0: imageUrl});
       }
     });
 
@@ -81,7 +84,7 @@ app.post("/hook/payment-created", async (req, res) => {
     // "" + req.body.data.object.payment.amount_money.amount / 100;
     console.log("payment method: ", paymentMethod);
     if (paymentMethod === "CASH") {
-      db.ref("alert/").set({"drawer": "active"});
+      db.ref("alert/").set({drawer: "active"});
     }
 
     // fetch orders details with payment
@@ -103,31 +106,34 @@ app.post("/hook/payment-created", async (req, res) => {
 
     // create orders object
     let previousCatalog = "drinks";
-    const lineItems = response.result.order.lineItems.filter((item) => {
-      if (item.name == "Delivery Partner") {
-        return false;
-      }
-      return true;
-    }).map((item, index) => {
-      let modifiers = "";
-      previousCatalog = catalog[item.catalogObjectId] ?
-        catalog[item.catalogObjectId] :
-        previousCatalog;
-      if (item.modifiers) {
-        item.modifiers.map((modifier) => {
-          modifiers += modifiers === "" ? modifier.name : ", " + modifier.name;
+    const lineItems = response.result.order.lineItems
+        .filter((item) => {
+          if (item.name == "Delivery Partner") {
+            return false;
+          }
+          return true;
+        })
+        .map((item, index) => {
+          let modifiers = "";
+          previousCatalog = catalog[item.catalogObjectId] ?
+          catalog[item.catalogObjectId] :
+          previousCatalog;
+          if (item.modifiers) {
+            item.modifiers.map((modifier) => {
+              modifiers +=
+              modifiers === "" ? modifier.name : ", " + modifier.name;
+            });
+          }
+          return {
+            id: index,
+            name: item.name,
+            categories: previousCatalog,
+            variation: item.variationName,
+            modifier: modifiers,
+            quantity: item.quantity,
+            state: "process",
+          };
         });
-      }
-      return {
-        id: index,
-        name: item.name,
-        categories: previousCatalog,
-        variation: item.variationName,
-        modifier: modifiers,
-        quantity: item.quantity,
-        state: "wait",
-      };
-    });
     const newOrder = {
       is_paid: paymentMethod === "CASH" ? true : false,
       items: lineItems,
@@ -145,17 +151,18 @@ const postOrderDetail = (data) => {
     "Content-Type": "application/json",
   };
   console.log("Posting Data to GAS");
-  axios.post("https://script.google.com/macros/s/AKfycbxpYmQVZflPrIDHR_tVwYGTtsQt3mQrOXbBBu0QWc8g-JvKSa04wrgUDPrVxVtGTcb0OA/exec",
-      data,
-      {
-        headers: headers,
-      },
-  ).then((response) => {
-  }).catch((error) => {
-    console.log(error);
-  });
+  axios
+      .post(
+          "https://script.google.com/macros/s/AKfycbxpYmQVZflPrIDHR_tVwYGTtsQt3mQrOXbBBu0QWc8g-JvKSa04wrgUDPrVxVtGTcb0OA/exec",
+          data,
+          {
+            headers: headers,
+          },
+      )
+      .then((response) => {})
+      .catch((error) => {
+        console.log(error);
+      });
 };
 
-exports.app = functions
-    .region("asia-southeast1")
-    .https.onRequest(app);
+exports.app = functions.region("asia-southeast1").https.onRequest(app);

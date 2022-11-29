@@ -29,3 +29,4 @@ yarn.lock
 .npmrc
 functions/.env
 functions/.env.yaml
+.eslintrc.json
