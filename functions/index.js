@@ -131,7 +131,7 @@ app.post("/hook/payment-created", async (req, res) => {
             variation: item.variationName,
             modifier: modifiers,
             quantity: item.quantity,
-            state: "process",
+            state: "wait",
           };
         });
     const newOrder = {
@@ -153,7 +153,7 @@ const postOrderDetail = (data) => {
   console.log("Posting Data to GAS");
   axios
       .post(
-          "https://script.google.com/macros/s/AKfycbxpYmQVZflPrIDHR_tVwYGTtsQt3mQrOXbBBu0QWc8g-JvKSa04wrgUDPrVxVtGTcb0OA/exec",
+          "https://script.google.com/macros/s/AKfycbxdYojWljykoqtzl9Sn1APnvyoh_g9wfAJXKmPJGDIw6AYbeRpKVTeo5XrYleK6kVaxPw/exec",
           data,
           {
             headers: headers,
